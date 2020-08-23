@@ -7,7 +7,8 @@ import (
 
 	"github.com/rs/cors"
 
-	r "ufc.com/deti/go-dad/src/routes"	
+	"ufc.com/deti/go-dad/src/migrate"
+	r "ufc.com/deti/go-dad/src/routes"
 )
 
 func main() {
@@ -16,6 +17,8 @@ func main() {
 		AllowedMethods: []string{"POST", "GET", "DELETE", "PUT", "PATCH"},
 	})
 	handler := c.Handler(mux)
-	fmt.Println("Server running on 80 port ... ")
-	log.Fatal(http.ListenAndServe(":80", handler))
+	fmt.Println("Server running on 8080 port ... ")
+	// database.CreateDB()
+	migrate.Migrate()
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }

@@ -1,52 +1,72 @@
 package model
 
 import (
-	"errors"
+	"ufc.com/deti/go-dad/src/database"
+
+	"github.com/jinzhu/gorm"
 )
 
+// Book model
 type Book struct {
-	Name    string   `json:"nome"`
-	Authors []string `json:"autores"`
-	Year    string   `json:"data_lancamento"`
-	Preco   float64  `json:"preco"`
-	Id      int      `json:"id"`
-	Cover   string   `json:"nome_capa"`
+	gorm.Model
+	Name    string  `json:"nome"`
+	Authors string  `json:"autores"`
+	Year    string  `json:"data_lancamento"`
+	Preco   float64 `json:"preco"`
+	Cover   string  `json:"nome_capa"`
 }
 
 type Books []Book
 
-var books = Books{}
+// Migrate -- Migrate
+func Migrate() {
+
+	db, _ := database.NewConnection()
+	db.AutoMigrate(&Book{})
+	db.Close()
+}
 
 func GetAll() Books {
+
+	var books Books
+	db, _ := database.NewConnection()
+	defer db.Close()
+	db.Find(&books)
+
 	return books
 }
 
 func GetOne(id int) (*Book, error) {
 
-	err := errors.New("Book not found")
-	for _, book := range books {
-		if book.Id == id {
-			return &book, nil
-		}
+	db, _ := database.NewConnection()
+	defer db.Close()
+	var book Book
+	err := db.Where("id = ?", id).Find(&book).Error
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	return &book, nil
 
 }
 
 func Store(book Book) *Book {
-	book.Id = len(books) + 1
-	books = append(books, book)
+
+	db, _ := database.NewConnection()
+	defer db.Close()
+	db.Create(&book)
 	return &book
+
 }
 
 func Delete(id int) error {
 
-	err := errors.New("Book not found")
-	for index, book := range books {
-		if book.Id == id {
-			books = append(books[:index], books[index+1:]...)
-			return nil
-		}
+	db, _ := database.NewConnection()
+	defer db.Close()
+	var book Book
+	err := db.Where("id = ?", id).Find(&book).Error
+	db.Delete(&book)
+	if err != nil {
+		
 	}
-	return err
+	return nil
 }
